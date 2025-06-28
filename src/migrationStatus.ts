@@ -2,6 +2,7 @@ import fsExtra from 'fs-extra';
 import { getFilePaths } from './FilePaths';
 import { Key } from './responseProviders/responseFormat';
 import path from 'node:path';
+import logger from './utils/logger';
 
 const { promises: fs } = fsExtra;
 
@@ -10,6 +11,33 @@ export interface MigrationStatus {
     migrated: boolean;
     keys: Key[];
   };
+}
+
+// NEW: Function to parse comments from file content
+export function extractCommentsFromContent(content: string): Key[] {
+  const commentRegex = /\/\*\*\s*\n\s*\*\s*({.*?})\s*\n\s*\*\//g;
+  const keys: Key[] = [];
+
+  let match;
+  while ((match = commentRegex.exec(content)) !== null) {
+    try {
+      const data = JSON.parse(match[1]);
+      keys.push({
+        name: '', // Will be filled later
+        description: data.description,
+        default: data.default,
+      });
+    } catch (_e) {
+      logger.warn(`Error parsing comment: ${match[1]}`);
+    }
+  }
+
+  return keys;
+}
+
+// NEW: Function to remove comments from file content
+export function removeCommentsFromContent(content: string): string {
+  return content.replace(/\/\*\*\s*\n\s*\*\s*({.*?})\s*\n\s*\*\//g, '');
 }
 
 export interface FileStatus {

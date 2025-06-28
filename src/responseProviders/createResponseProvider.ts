@@ -1,18 +1,21 @@
 import { ResponseProvider } from './ResponseProvider';
 import { AzureResponseProvider } from './AzureResponseProvider';
 import { OpenAiResponseProvider } from './OpenAiResponseProvider';
+import { ClaudeResponseProvider } from './ClaudeResponseProvider';
 import { PromptsProvider } from '../PromptsProvider';
 import { PresetType } from '../presets/PresetType';
 import { ExpectedError } from '../common/ExpectedError';
 
 const apiVersion = '2024-10-01-preview';
-type ApiProvider = 'AZURE_OPENAI' | 'OPENAI';
+type ApiProvider = 'AZURE_OPENAI' | 'OPENAI' | 'CLAUDE';
 
 export type AiProviderOptions = {
   openAiApiKey?: string;
   azureApiKey?: string;
   azureEndpoint?: string;
   azureDeployment?: string;
+  claudeApiKey?: string;
+  provider?: 'openai' | 'azure' | 'claude';
 };
 
 export function createResponseProvider(
@@ -22,8 +25,13 @@ export function createResponseProvider(
   const apiProviderType: ApiProvider = getApiProviderType(providerOptions);
   const promptsProvider = PromptsProvider(preset);
 
-  const { openAiApiKey, azureApiKey, azureEndpoint, azureDeployment } =
-    providerOptions;
+  const {
+    openAiApiKey,
+    azureApiKey,
+    azureEndpoint,
+    azureDeployment,
+    claudeApiKey,
+  } = providerOptions;
 
   switch (apiProviderType) {
     case 'AZURE_OPENAI':
@@ -41,6 +49,11 @@ export function createResponseProvider(
         openAiApiKey: openAiApiKey!,
         promptsProvider,
       });
+    case 'CLAUDE':
+      return ClaudeResponseProvider({
+        claudeApiKey: claudeApiKey!,
+        promptsProvider,
+      });
   }
 }
 
@@ -48,12 +61,17 @@ function getApiProviderType({
   azureApiKey,
   azureEndpoint,
   openAiApiKey,
+  claudeApiKey,
+  provider,
 }: AiProviderOptions): ApiProvider {
-  if (azureApiKey && azureEndpoint) {
+  // Explicit provider flag takes precedence
+  if (provider === 'claude' || claudeApiKey) {
+    return 'CLAUDE';
+  }
+  if (provider === 'azure' || (azureApiKey && azureEndpoint)) {
     return 'AZURE_OPENAI';
   }
-
-  if (openAiApiKey) {
+  if (provider === 'openai' || openAiApiKey) {
     return 'OPENAI';
   }
 

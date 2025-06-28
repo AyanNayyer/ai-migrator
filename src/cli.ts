@@ -7,8 +7,7 @@ import { ExpectedError } from './common/ExpectedError';
 async function main() {
   const program = createProgram();
   try {
-    const promise = program.parseAsync(process.argv); // Parse the command-line arguments
-
+    const promise = program.parseAsync(process.argv);// Parse the command-line arguments
     const logLevel = program.opts().logLevel;
     setLogLevel(logLevel);
     await promise;

@@ -15,6 +15,7 @@ interface FilesMigratorProps {
   appendixPath?: string;
   concurrency: number;
   providerOptions: AiProviderOptions;
+  inlineComments: boolean; 
 }
 
 export function FilesMigrator({
@@ -23,6 +24,7 @@ export function FilesMigrator({
   appendixPath,
   concurrency,
   providerOptions,
+  inlineComments,
 }: FilesMigratorProps) {
   const fileProcessor = FileProcessor(preset, providerOptions);
 
@@ -56,23 +58,33 @@ export function FilesMigrator({
 
       try {
         logger.info(`[FileProcessor] Processing file: ${file}`);
-        const result = await fileProcessor.processFile(file, appendixPath);
-        logger.info(
-          `[FileProcessor] Processed file: ${file} ✅ ${++processed}/${files.length}`
+        const result = await fileProcessor.processFile(
+          file,
+          appendixPath,
+          inlineComments
         );
-        await updateMigrationStatus({
-          currentStatus: status,
-          fileStatuses: [{ filePath: file, keys: result.keys, success: true }],
-        });
+        logger.info(
+          `[FileProcessor] Processed file: ${file} ${++processed}/${files.length}`
+        );
+        if (!inlineComments) {
+          await updateMigrationStatus({
+            currentStatus: status,
+            fileStatuses: [
+              { filePath: file, keys: result.keys, success: true },
+            ],
+          });
+        }
       } catch (error) {
         logger.error(
           `[cli][processFile] Error processing file: ${file}`,
           error
         );
-        await updateMigrationStatus({
-          currentStatus: status,
-          fileStatuses: [{ filePath: file, keys: [], success: false }],
-        });
+        if (!inlineComments) {
+          await updateMigrationStatus({
+            currentStatus: status,
+            fileStatuses: [{ filePath: file, keys: [], success: false }],
+          });
+        }
       }
     };
 

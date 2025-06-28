@@ -28,6 +28,19 @@ export function addMigrationCommand(program: Command) {
     .option('-k, --api-key <apiKey>', 'OpenAI or Azure OpenAI API key')
     .option('-e, --endpoint <endpoint>', 'Azure OpenAI endpoint')
     .option('-d, --deployment <azureDeployment>', 'Azure OpenAI deployment')
+    // NEW: Add CLI flag for inline comments mode
+    .option(
+      '--inline-comments',
+      'Generate JSON comments above SDK calls instead of status file',
+      false
+    )
+    //adding provider option for model selection
+    .option(
+      '--provider <provider>',
+      'AI provider to use (openai|claude)',
+      'openai'
+    )
+    .option('--claude-api-key <claudeApiKey>', 'Anthropic Claude API key')
     .action(async (options) => {
       // Run the migration process
       const migrator = FilesMigrator({
@@ -40,7 +53,10 @@ export function addMigrationCommand(program: Command) {
           azureApiKey: options.apiKey,
           azureEndpoint: options.endpoint,
           azureDeployment: options.deployment,
+          claudeApiKey: options.claudeApiKey,
+          provider: options.provider,
         },
+        inlineComments: options.inlineComments,
       });
 
       await migrator.migrateFiles();

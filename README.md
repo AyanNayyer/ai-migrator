@@ -37,7 +37,7 @@ However, you must do non-repetitive manual work to complete the migration proces
   your project. Steps like installing the libraries, creating Tolgee or wrapping your app code with the Tolgee provider are
   not subject to this tool.
 - You need to have an OpenAI API key. You can get it [here](https://platform.openai.com/api-keys). Alternatively, you
-  can use the Azure OpenAI.
+  can use the Azure OpenAI or Anthropic Claude.
 - You need to have a project in the Tolgee platform where you want to upload the keys. You can create a new project in
   Tolgee platform [here](https://app.tolgee.io).
 - You need to create an API key for the project in the Tolgee platform. To create one, follow
@@ -45,13 +45,26 @@ However, you must do non-repetitive manual work to complete the migration proces
 
 ## Usage
 
-The migration process consists of two steps. The first step, `migrate` command execution, will process your files,
+The migration process consists of multiple steps depending on your chosen approach:
+
+### Standard Migration (Single-Pass)
+
+The standard migration process consists of two steps. The first step, `migrate` command execution, will process your files,
 replacing them with the migrated version and producing a status file, including the localization keys to create.
 
 In the second step, you can manually fix the migrated code files and the migration status file. You can also add new keys to the status
 file.
 
 The third step, the `upload-keys` command execution, will upload the keys to the Tolgee platform.
+
+### Two-Pass Migration with Inline Comments
+
+For better review and control, you can use the two-pass migration approach:
+
+1. **First Pass**: Use the `--inline-comments` flag to generate JSON comments above each Tolgee SDK call
+2. **Review**: Manually review the migrated files with inline comments
+3. **Second Pass**: Use the `extract-comments` command to remove comments and generate the status file
+4. **Upload**: Use the `upload-keys` command to upload keys to Tolgee
 
 ### Step 1 - `migrate` command execution
 
@@ -68,12 +81,26 @@ The third step, the `upload-keys` command execution, will upload the keys to the
    The command requires a clean git state, if you have any uncommitted changes, stash them or commit them, or else you
    will get `Migrator requires a clean git state. Please commit or stash changes before proceeding.` error message.
 
+   **Standard Migration:**
    ```bash
     tolgee-migrator migrate -p 'src/**/*.tsx' -r react -k <your openAI api-key>
+   ```
+
+   **Two-Pass Migration (First Pass):**
+   ```bash
+   tolgee-migrator migrate -p 'src/**/*.tsx' -r react -k <your openAI api-key> --inline-comments
+   ```
+
+   **Using Claude as AI Provider:**
+     ```bash
+   tolgee-migrator migrate -p 'src/**/*.tsx' -r react --provider claude --claude-api-key <your-claude-api-key>
    ```
     - `-p` - glob pattern to search for files to migrate
     - `-r` - preset according to your project stack (currently, only `react` is supported, or custom preset)
     - `-k` - your OpenAI API key
+    - `--provider` - AI provider to use (`openai`, `azure`, or `claude`)
+    - `--claude-api-key` - your Anthropic Claude API key (required when using Claude)
+    - `--inline-comments` - generate JSON comments above SDK calls for two-pass migrationy
 
    You can also use `--help` to see all available options. Or see them below.
 
@@ -83,6 +110,23 @@ In the second step, you can review the migrated and status files and fix them. I
 in your favorite IDE.
 
 If you add a new key to any file, don't forget to add it to the status file.
+
+**For Two-Pass Migration:**  
+If you used the `--inline-comments` flag, you'll see JSON comments above each Tolgee SDK call:
+```json
+/**
+
+{"description": "Welcome message for users", "default": "Welcome!"}
+*/
+<T keyName="welcome-message" />
+```
+
+After reviewing, run the extract-comments command:
+```bash
+tolgee-migrator extract-comments -p 'src/**/*.tsx'
+```
+
+This will remove the inline comments and generate the `.tolgee/migration-status.json` file.
 
 ![Diff example](./docs/img/diff.webp)
 
@@ -129,15 +173,33 @@ tolgee-migrator migrate --help
 Migrates files and creates status file
 
 Options:
-  -p, --pattern <pattern>             File pattern to search for (e.g., src/**/*.tsx) (default: "src/**/*")
-  -a, --appendixPath <appendixPath>   Path to file with custom prompt appendix
-  -r, --preset <preset>               Preset to use for migration (default: "react")
-  -c, --concurrency <concurrency>     Number of files to process concurrently (default: "5")
-  -k, --api-key <apiKey>              OpenAI or Azure OpenAI API key
-  -e, --endpoint <endpoint>           Azure OpenAI endpoint
-  -d, --deployment <azureDeployment>  Azure OpenAI deployment
-  -h, --help                          display help for command
+  -p, --pattern <pattern> File pattern to search for (e.g., src//*.tsx) (default: "src//*")
+  -a, --appendixPath <appendixPath> Path to file with custom prompt appendix
+  -r, --preset <preset> Preset to use for migration (default: "react")
+  -c, --concurrency <concurrency> Number of files to process concurrently (default: "5")
+  -k, --api-key <apiKey> OpenAI or Azure OpenAI API key
+  -e, --endpoint <endpoint> Azure OpenAI endpoint
+  -d, --deployment <azureDeployment> Azure OpenAI deployment
+  --provider <provider> AI provider to use (openai, azure, claude)
+  --claude-api-key <claudeApiKey> Anthropic Claude API key (for Claude provider)
+  --inline-comments Generate JSON comments above SDK calls (for two-pass migration)
+  -h, --help display help for command
 ```
+
+### The `extract-comments` command
+
+This command is used in the two-pass migration flow to extract and remove inline JSON comments from code and generate the migration status file.
+
+See the command help for all available options:
+```bash
+tolgee-migrator extract-comments --help
+```
+Extracts inline JSON comments, removes them, and generates the migration status file.
+
+Options:
+-p, --pattern <pattern> File pattern to search for (e.g., src//*.tsx) (default: "src//*")
+-h, --help display help for command
+
 
 ### Customizing the prompt
 

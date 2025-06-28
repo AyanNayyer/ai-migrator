@@ -9,17 +9,55 @@ import { retryOnError, retryOnRateLimit } from './common/retryOnError';
 
 const { promises: fs } = fsExtra;
 
+
+// NEW: Function to generate JSON comment string
+function generateComment(key: { name: string; description: string; default: string }): string {
+  return `/**\n * ${JSON.stringify({
+    description: key.description,
+    default: key.default,
+  })}\n */\n`;
+}
+
 export function FileProcessor(
   preset: PresetType,
   providerOptions: AiProviderOptions
 ) {
   const responseProvider = createResponseProvider(preset, providerOptions);
 
-  async function processFile(filePath: string, promptAppendixPath?: string) {
+  async function processFile(
+    filePath: string,
+    promptAppendixPath?: string,
+    inlineComments = false // NEW: Add inlineComments flag
+  ) {
     const fileContent = await fs.readFile(filePath, 'utf-8');
     const promptAppendix = await loadPromptAppendix(promptAppendixPath);
     const result = await getResponseRetrying(fileContent, promptAppendix);
-    await writeFileIfKeysExtracted(filePath, result);
+    
+    // NEW: Handle inline comments mode
+    let processedContent = result.newFileContents;
+    if (inlineComments) {
+      for (const key of result.keys) {
+        // Escape special regex characters in the key name
+        const escapedKeyName = key.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        
+        // More comprehensive regex patterns
+        const keyUsagePattern = new RegExp(
+          `(<T\\s+keyName=["']${escapedKeyName}["'][^>]*\\/>|<T\\s+keyName=["']${escapedKeyName}["'][^>]*>.*?</T>|t\\(["'\`]${escapedKeyName}["'\`]\\))`,
+          'g'
+        );
+        const comment = generateComment(key);
+        processedContent = processedContent.replace(
+          keyUsagePattern,
+          `${comment}$1`
+        );
+      }
+    }
+    
+    // NEW: Write processed content instead of raw AI output
+    if (result.keys.length > 0) {
+      await fs.writeFile(filePath, processedContent);
+    }
+    
     return result;
   }
 

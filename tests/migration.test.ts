@@ -48,7 +48,7 @@ describe("migration", () => {
     expect(logger.info).toHaveBeenCalledWith(
       expect.stringContaining("Processed file: dummyFilepath.tsx"),
     );
-    expect(logger.info).toHaveBeenCalledWith(expect.stringContaining("✅ 2/2"));
+    expect(logger.info).toHaveBeenCalledWith(expect.stringContaining("2/2"));
   });
 });
 
