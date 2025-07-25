@@ -30,3 +30,5 @@ allKeys.json
 
 # Ignore compiled TypeScript files
 /dist
+eslint.config.mjs
+package-lock.json

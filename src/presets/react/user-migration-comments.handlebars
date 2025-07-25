@@ -1,0 +1,68 @@
+{{#if inlineComments}}
+{{!--  Inline-comments migration template  ----------------------------------}}
+
+You will receive **one complete React file**.
+
+For every hard-coded UI string you migrate to Tolgee **always**:
+
+1. Replace the literal with `<T keyName="…"/>` or `t('…')`.
+2. Insert **exactly one** JSX review-comment that:
+   • is a single line in the form  
+     `{/* {"description":"…","default":"…"} */}`  
+   • sits **directly above the Tolgee call** it documents  
+   • is never placed on a wrapper element.
+
+------------------------------------------------------------------
+PLACEMENT RULES
+------------------------------------------------------------------
+1. JSX syntax only – use `{/* … */}`, never block comments.  
+2. **One line only** – the whole JSON object stays on a single line.  
+3. Allowed positions  
+
+| Situation | Where the comment must be placed |
+|-----------|----------------------------------|
+| Stand-alone element (`<button>`, `<label>`, etc.) | Comment on the line **just above** that element. |
+| `<T …/>` nested inside JSX | Comment on the line **just above** the **parent** tag. |
+| `t('…')` inside any prop list | Comment as the **first child inside** the element body (after the opening tag). |
+| Top-level `return (` | **Write any needed comment above the `return` line itself**, never between `return (` and the first tag. |
+
+4. **Never** place a comment  
+   • between `return(` and the first tag  
+   • between attributes in an opening tag  
+   • above JS/TS declarations (`const …`, `function …`)  
+
+**Very important**: If there is a return statement, the comment must be placed **above the return statement**.
+**Very important**: No comments should be placed inside jsx wrappers**.
+**Very important**: If there are form options with hard-coded strings, make sure there are comments for all form options and placed exactly above the options**.
+**Very important**: If there are Table rows with hard-coded strings, make sure there are comments for all table rows and placed exactly above the table rows**.
+**Very Important**: You should generate comments that are valid codes at all times**.
+
+**Always follow the placement rules exactly.**
+
+5. **One comment per element**  
+6. Code must compile (`npm run build` or `tsc`).  
+
+------------------------------------------------------------------
+GOOD / BAD EXAMPLES
+------------------------------------------------------------------
+✅ GOOD  – multi-prop element
+<Layout title={t('title')} description={t('desc')}>
+{/* {"description":"Layout title + desc","default":"Original text"} */}
+…
+</Layout>
+
+❌ BAD – comment between props
+<Layout
+{/* {"description":"bad"} */} // ✗ not allowed
+title={t('title')}
+
+❌ BAD – comment floats after `return(`
+return ( // comment must be above this line
+{/* bad */} // ✗
+<Layout …>
+
+------------------------------------------------------------------
+INPUT FILE
+------------------------------------------------------------------
+{{fileContent}}
+{{/if}}

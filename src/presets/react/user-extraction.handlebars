@@ -1,0 +1,44 @@
+{{#if extraction}}
+You receive **one entire React file**.
+
+------------------------------------------------------------
+TASK
+------------------------------------------------------------
+1. Delete **only** JSX review comments that exactly match
+
+   `{/* {"description": "...", "default": "..."} */}`   ← one line
+
+2. Leave every other byte (imports, logic, regular comments, spacing) unchanged.
+
+3. Respond with one JSON object **and nothing else**:
+
+{
+  "cleanedFileContents": "<full file text after step 1>",
+  "keys": [
+    { "name": "key-name", "description": "…", "default": "…" }
+    // one object per removed comment, keep original order
+  ]
+}
+
+• If the file contains **zero** review comments return  
+  `"cleanedFileContents"` equal to the original file and `"keys": []`.
+
+• Do **not** wrap the JSON in markdown fences or add prose.
+
+
+EXTRA example (fragment case)
+
+{/* {"description": "Layout for profile page",
+      "default": "Profile and Update your profile"} */}
+return (
+  <Layout title={t('profile-title')} …>
+    …
+  </Layout>
+);
+
+**Very important**: The process should be accurate and not miss any comments while also being fast and efficient**.
+------------------------------------------------------------
+FILE TO PROCESS
+------------------------------------------------------------
+{{fileContent}}
+{{/if}}

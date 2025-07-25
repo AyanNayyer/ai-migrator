@@ -10,7 +10,7 @@ Follow these important rules:
 - **For standard strings, which can be replaced by component**
     - <button>Save</button> should become <T keyName="save-button"/>
 - **For attributes or non-component contexts** (like placeholder or window title), use t function :
-    - <input placeholder="New list item" /> should become <input placeholder={t('new-list-item-input-placeholder')}) />
+    - <input placeholder="New list item" /> should become <input placeholder={t('new-list-item-input-placeholder')} />
 - **Use T component only for suitable places. When the target needs string for some reason, use t function and add useTranslate hook to the component top.
 - Import T or useTranslate it from @tolgee/react package. Import only what you need! Don't forget to use useTranslate, but use it only when required!
 - This is the right way to get t function using useTranslate(): `const { t } = useTranslate();`

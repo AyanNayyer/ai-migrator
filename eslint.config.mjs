@@ -9,10 +9,18 @@ export default tseslint.config({
   files: [
     'src/**/*.{js,ts,mjs,cjs,tsx,jsx}',
     'test/**/*.{js,ts,mjs,cjs,tsx,jsx}',
+    'tests/**/*.{js,ts,mjs,cjs,tsx,jsx}',
+    'testsGpt/**/*.{js,ts,mjs,cjs,tsx,jsx}',
     'scripts/**/*.{js,ts,mjs,cjs,tsx,jsx}',
-    '*.config.{js,ts}',
+    '*.config.{js,ts,mjs}',
   ],
-  ignores: ['**/*.generated.ts', 'dist/**/*', 'dist-types/**/*'],
+  ignores: [
+    '**/*.generated.ts',
+    'dist/**/*',
+    'dist-types/**/*',
+    'node_modules/**/*',
+    '**/*.js', // Ignore all .js files to avoid linting compiled code
+  ],
   extends: [
     eslint.configs.recommended,
     ...tseslint.configs.recommended,

@@ -4,9 +4,13 @@ export function PromptsProvider(preset: PresetType) {
   function getPrompts({
     fileContent,
     promptAppendix,
+    inlineComments,
+    extraction,
   }: {
     fileContent: string;
-    promptAppendix: string;
+    promptAppendix?: string;
+    inlineComments?: boolean;
+    extraction?: boolean;
   }) {
     const systemPrompt = preset.getSystemPrompt();
 
@@ -15,7 +19,11 @@ export function PromptsProvider(preset: PresetType) {
       ? `${systemPrompt}\n\nAdditional Instructions:\n${promptAppendix}`
       : systemPrompt;
 
-    const userPrompt = preset.getUserPrompt({ fileContent });
+    const userPrompt = preset.getUserPrompt({ 
+      fileContent,
+      inlineComments,
+      extraction,
+    });
 
     return { systemPrompt: completeSystemPrompt, userPrompt };
   }

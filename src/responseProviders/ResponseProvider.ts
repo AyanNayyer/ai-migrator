@@ -4,5 +4,7 @@ export interface ResponseProvider {
 
 export type GetResponseProps = {
   fileContent: string;
-  promptAppendix: string;
+  promptAppendix?: string;
+  inlineComments?: boolean;
+  extraction?: boolean;
 };
